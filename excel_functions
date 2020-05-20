@@ -1,4 +1,4 @@
-'Searches over Excel Range for Last Name match, Proceeds with First name match, If both are satified will grab cell and place in new worksheet
+'Searches over Excel Range for Missing Values, then performs Last Name match, Proceeds with First name match, If both are satified will grab cell and place in new worksheet
 
 Sub FirstAndLastNameSearch(Optional bTF As String = "xl", Optional cCH As String = "xl")
 
