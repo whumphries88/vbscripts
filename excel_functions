@@ -1,0 +1,76 @@
+'Searches over Excel Range for Last Name match, Proceeds with First name match, If both are satified will grab cell and place in new worksheet
+
+Sub FirstAndLastNameSearch(Optional bTF As String = "xl", Optional cCH As String = "xl")
+
+    Dim rng, lastRow, lastRowCCH, c, rowCell, name, firstName, lastName, a, b, temp As String
+    Dim cel, cellFound, cchRng, tempRng As range
+    Dim count As Integer
+    Dim arr
+    Dim isNA, isNA2 As Boolean
+    Dim botTemplateFile, term  As Object
+    Set botTemplateFile = GetObject(bTF)
+    Set term = GetObject(cCH)
+
+    lastRow = botTemplateFile.Worksheets("hr").range("A" & Rows.count).End(xlUp).Row 'Last row is greater than 2 from last check in FillDownFormulas
+    lastRowCCH = cchf.Worksheets("C w").range("A" & Rows.count).End(xlUp).Row
+    rng = "C3:C" & lastRow
+    cchRng = "A2:A" & lastRowCCH
+    
+    On Error Resume Next
+    For Each cel In botTemplateFile.Worksheets("hr").range(rng)
+        count = 0
+        isNA = CVErr(cel.value)
+        isNA = Application.WorksheetFunction.isNA(cel.value)
+        If isNA = True Then   'Enter if value is #N/A
+            rowCell = cel.Row 'Get Cell Row to Reference A
+            name = botTemplateFile.Worksheets("hr").range("A" & rowCell).value 'By first name, it is meant row 2 then plus 3
+            'If InStr(1, ",", name) <> True Then GoTo NextIteration
+            If InStr(1, name, ",") > 0 Then 'Make sure cell can be split by ","
+                
+                arr = Split(name, ",")
+                lastName = arr(0)
+                firstName = arr(1)
+                firstName = Split(Trim(firstName), " ")(0)
+                
+                
+                Set cchRng = cchf.Worksheets("C w").range(cchRng) 'Find if only one Resource with first and last name
+                    If cchRng.Find(lastName) Is Nothing Then
+                        'Skip- value not found
+                        GoTo NextIteration
+                    Else 'At least one last name found
+                        Set a = cchRng.Find(lastName)
+                        b = a
+                        temp = a.Address
+                        c = a.Offset(, 6).value '
+                        
+                        Do
+                            If cellFound Is Nothing Then
+                                    Set cellFound = cchRng.Find(What:=lastName)
+                                    If InStr(1, cellFound, firstName) Then
+                                        Set tempRng = cellFound
+                                        count = 1
+                                    End If
+                            Else
+                                    Set tempRng = cchRng.Find(What:=lastName, After:=tempRng)
+                                    If InStr(1, cellFound, firstName) Then
+                                        If tempRng.Address = cellFound.Address Then Exit Do  'Will Eventually Loop back to First Address
+                                        count = count + 1
+                                    End If
+                            End If
+                        Loop
+                        
+                        If count > 0 Then   'If one cell, make sure first name is there, if more than one make sure only one first name
+                            If count = 1 Then  'Only one full name found
+                                
+                            ElseIf count > 1 Then  'Multiple full names found
+                                GoTo NextIteration
+                            Else 'No full names found
+                                GoTo NextIteration
+                            End If
+                        End If
+                    End If
+            End If
+NextIteration:
+        End If
+    Next
+End Sub
